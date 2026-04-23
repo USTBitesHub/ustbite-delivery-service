@@ -64,7 +64,8 @@ jobs:
     uses: USTBitesHub/ustbite-workflows/.github/workflows/helm-updater-job.yaml@main
     with:
       service_name: "delivery-service"
-      image_tag: ${{ needs.push-image.outputs.tag }}      target_branch: ${{ github.ref_name }}
+      image_tag: ${{ needs.push-image.outputs.tag }}
+      target_branch: ${{ github.ref_name }}
     secrets: inherit
 
   notify-status:

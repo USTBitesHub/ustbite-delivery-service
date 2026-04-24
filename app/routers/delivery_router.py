@@ -4,7 +4,7 @@ from app.database import get_db
 from app.schemas import StandardResponse, DeliveryResponse, DeliveryStatusUpdate, DeliveryAgentResponse
 from app.services import delivery_service
 from app.events.publisher import publish_event
-from app.models import DeliveryStatus
+from app.models.models import DeliveryStatus
 
 router = APIRouter(prefix="/deliveries", tags=["Deliveries"])
 agents_router = APIRouter(prefix="/agents", tags=["Agents"])

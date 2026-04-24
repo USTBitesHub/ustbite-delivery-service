@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && rm -r
 COPY --from=builder /install /usr/local
 COPY --chown=appuser:appgroup ./alembic ./alembic
 COPY --chown=appuser:appgroup ./alembic.ini ./alembic.ini
+RUN chmod -R a-w /app/alembic /app/alembic.ini
 COPY --chown=appuser:appgroup ./app ./app
 USER appuser
 EXPOSE 8005

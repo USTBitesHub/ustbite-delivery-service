@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from .models import Delivery, DeliveryAgent, DeliveryStatus
+from app.models.models import Delivery, DeliveryAgent, DeliveryStatus
 from datetime import datetime, timezone
 
 async def get_delivery_by_order(db: AsyncSession, order_id: str):

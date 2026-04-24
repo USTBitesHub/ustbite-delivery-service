@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
-from .models import DeliveryStatus
+from app.models.models import DeliveryStatus
 
 class StandardResponse(BaseModel):
     data: Optional[dict | list] = None

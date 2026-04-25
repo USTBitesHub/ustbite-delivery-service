@@ -13,14 +13,18 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # asyncpg requires ONE statement per op.execute() — no semicolon-separated batches
+
     op.execute("""
         DO $$ BEGIN
             CREATE TYPE delivery_status AS ENUM (
                 'ASSIGNED', 'PICKED_UP', 'OUT_FOR_DELIVERY', 'DELIVERED'
             );
         EXCEPTION WHEN duplicate_object THEN NULL;
-        END $$;
+        END $$
+    """)
 
+    op.execute("""
         CREATE TABLE IF NOT EXISTS delivery_agents (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             name VARCHAR NOT NULL,
@@ -29,8 +33,10 @@ def upgrade() -> None:
             is_available BOOLEAN DEFAULT TRUE,
             current_floor VARCHAR,
             current_wing VARCHAR
-        );
+        )
+    """)
 
+    op.execute("""
         CREATE TABLE IF NOT EXISTS deliveries (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             order_id UUID NOT NULL UNIQUE,
@@ -45,20 +51,24 @@ def upgrade() -> None:
             user_name VARCHAR,
             created_at TIMESTAMPTZ DEFAULT NOW(),
             actual_delivered_at TIMESTAMPTZ
-        );
-        CREATE INDEX IF NOT EXISTS ix_deliveries_order_id ON deliveries(order_id);
+        )
+    """)
 
-        -- Seed: 3 delivery agents so payment.success can auto-assign
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS ix_deliveries_order_id ON deliveries(order_id)"
+    )
+
+    op.execute("""
         INSERT INTO delivery_agents (id, name, phone, employee_id, is_available)
         VALUES
             ('d0000001-0000-0000-0000-000000000001', 'Arjun Kumar',  '+91-9000000001', 'AGT001', TRUE),
             ('d0000001-0000-0000-0000-000000000002', 'Priya Singh',  '+91-9000000002', 'AGT002', TRUE),
             ('d0000001-0000-0000-0000-000000000003', 'Mohammed Ali', '+91-9000000003', 'AGT003', TRUE)
-        ON CONFLICT (employee_id) DO NOTHING;
+        ON CONFLICT (employee_id) DO NOTHING
     """)
 
 
 def downgrade() -> None:
-    op.execute("DROP TABLE IF EXISTS deliveries CASCADE;")
-    op.execute("DROP TABLE IF EXISTS delivery_agents CASCADE;")
-    op.execute("DROP TYPE IF EXISTS delivery_status;")
+    op.execute("DROP TABLE IF EXISTS deliveries CASCADE")
+    op.execute("DROP TABLE IF EXISTS delivery_agents CASCADE")
+    op.execute("DROP TYPE IF EXISTS delivery_status")

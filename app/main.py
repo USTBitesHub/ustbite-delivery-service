@@ -9,12 +9,24 @@ import asyncio
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter, Histogram
 from app.config import settings
 
+from contextlib import asynccontextmanager
+from app.events.consumer import start_consumer
+
+@asynccontextmanager
+async def lifespan(app):
+    # Start RabbitMQ consumer to auto-create deliveries on payment.success
+    import asyncio
+    asyncio.ensure_future(start_consumer())
+    yield
+
 app = FastAPI(
     title="ustbite-delivery-service",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan,
 )
+
 
 app.add_middleware(
     CORSMiddleware,

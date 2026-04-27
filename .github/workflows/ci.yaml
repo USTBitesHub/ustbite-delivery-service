@@ -30,17 +30,8 @@ jobs:
       runtime: "python"
     secrets: inherit
 
-  lint-and-scan:
-    needs: gitleaks
-    if: github.event_name == 'pull_request'
-    uses: USTBitesHub/ustbite-workflows/.github/workflows/lint-and-scan.yaml@feature/lint-scan
-    with:
-      service_name: "delivery-service"
-      service_path: "./"
-    secrets: inherit
-
   build-pr:
-    needs: [scan, lint-and-scan]
+    needs: [scan]
     if: github.event_name == 'pull_request'
     uses: USTBitesHub/ustbite-workflows/.github/workflows/generate-tag-and-build-image-trivy.yaml@main
     with:

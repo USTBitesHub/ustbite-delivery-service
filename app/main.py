@@ -14,7 +14,6 @@ from app.events.consumer import start_consumer
 
 @asynccontextmanager
 async def lifespan(app):
-    # Start RabbitMQ consumer to auto-create deliveries on payment.success
     import asyncio
     _consumer_task = asyncio.ensure_future(start_consumer())
     yield

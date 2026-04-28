@@ -15,7 +15,14 @@ permissions:
   packages: write 
 
 jobs:
+  gitleaks:
+    uses: USTBitesHub/ustbite-workflows/.github/workflows/gitleaks.yaml@feature/lint-scan
+    with:
+      service_name: "delivery-service"
+    secrets: inherit
+
   scan:
+    needs: gitleaks
     if: github.event_name == 'pull_request'
     uses: USTBitesHub/ustbite-workflows/.github/workflows/sonar-and-snyk.yaml@main
     with:
@@ -25,7 +32,7 @@ jobs:
     secrets: inherit
 
   build-pr:
-    needs: scan
+    needs: [scan]
     if: github.event_name == 'pull_request'
     uses: USTBitesHub/ustbite-workflows/.github/workflows/generate-tag-and-build-image-trivy.yaml@main
     with:
@@ -34,6 +41,7 @@ jobs:
     secrets: inherit
 
   build-push:
+    needs: gitleaks
     if: github.event_name == 'push'
     uses: USTBitesHub/ustbite-workflows/.github/workflows/generate-tag-and-build-image-trivy.yaml@main
     with:
@@ -71,8 +79,8 @@ jobs:
 
   notify-status:
     if: always() && github.event_name == 'push'
-    needs: [build-push, push-image, prod-gate, helm-update]
-    uses: USTBitesHub/ustbite-workflows/.github/workflows/notify.yaml@main
+    needs: [gitleaks, build-push, push-image, prod-gate, helm-update]
+    uses: USTBitesHub/ustbite-workflows/.github/workflows/notify.yaml@feature/lint-scan
     with:
       service_name: "delivery-service"
       git_tag: ${{ needs.push-image.outputs.tag || 'N/A' }}
@@ -81,4 +89,5 @@ jobs:
       build_result: ${{ needs.build-push.outputs.build_result || 'skipped' }}
       trivy_result: ${{ needs.build-push.outputs.trivy_result || 'skipped' }}
       push_result: ${{ needs.push-image.result || 'skipped' }}
+      gitleaks_result: ${{ needs.gitleaks.result || 'skipped' }}
     secrets: inherit
